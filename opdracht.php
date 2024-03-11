@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Input Sanitization Challenge</title>
 </head>
+
 <body>
 
     <h1>Welkom op onze website</h1>
@@ -19,16 +21,33 @@
     // Toon het ingevoerde bericht met HTML-sanitatie (deel van XSS-preventie)
     echo "<p>Veilig bericht (HTML-gecodeerd): " . htmlspecialchars($userMessage, ENT_QUOTES, 'UTF-8') . "</p>";
 
-    // Toon het ingevoerde bericht met JavaScript-sanitatie (deel van XSS-preventie)
-    echo "<script>let userMessage = '" . addslashes($userMessage) . "';</script>";
+    // Database interactie met prepared statements om SQL-injectie te voorkomen
+    
+    // Vul hier je database credentials in
+    $servername = "localhost";
+    $username = "root";
+    $password = "";
+    $dbname = "input_sanitization_challenge";
 
-    // Voeg het bericht toe aan een database met een enkele tabel
-    // Zorg voor eigen credentials voor deze database
-    // Maak gebruik van prepared statements om SQL-injectie te voorkomen 
+    try {
+        // Maak een verbinding met de database
+        $conn = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
+        // Stel de PDO error mode in op exception
+        $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    // je code hier...
+        // Voeg het bericht toe aan de database met een prepared statement
+        $stmt = $conn->prepare("INSERT INTO messages (message) VALUES (:message)");
+        $stmt->bindParam(':message', $userMessage);
+        $stmt->execute();
 
-?>
+        echo "<p>Bericht succesvol toegevoegd aan de database.</p>";
+    } catch (PDOException $e) {
+        echo "Error: " . $e->getMessage();
+    }
+
+    // Sluit de databaseverbinding
+    $conn = null;
+    ?>
 
     <hr>
 
@@ -40,4 +59,5 @@
     </form>
 
 </body>
+
 </html>
